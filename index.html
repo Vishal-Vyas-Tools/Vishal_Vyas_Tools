@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#4338ca"/>
+<title>My Tools</title>
+<style>
+  :root{--bg:#f1f5f9;--card:#fff;--ink:#1e293b;--mute:#64748b;--line:#e2e8f0;--accent:#4338ca;--accent-soft:#eef2ff}
+  @media (prefers-color-scheme:dark){:root{--bg:#0f172a;--card:#1e293b;--ink:#e2e8f0;--mute:#94a3b8;--line:#334155;--accent:#818cf8;--accent-soft:#312e81}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  header{padding:48px 16px 24px;text-align:center}
+  h1{margin:0 0 8px;font-size:clamp(26px,5vw,38px)}
+  header p{margin:0;color:var(--mute)}
+  .bar{max-width:1100px;margin:0 auto;padding:0 16px 16px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+  input{flex:1 1 260px;max-width:420px;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-size:15px}
+  input:focus{outline:none;border-color:var(--accent)}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .tag{border:1.5px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;border-radius:999px;font-size:13px;cursor:pointer}
+  .tag.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  main{max-width:1100px;margin:0 auto;padding:8px 16px 48px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+  .card{display:flex;flex-direction:column;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;text-decoration:none;color:inherit;transition:transform .15s,box-shadow .15s}
+  .card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(15,23,42,.14)}
+  .ico{width:48px;height:48px;border-radius:12px;background:var(--accent-soft);display:grid;place-items:center;font-size:26px;overflow:hidden}
+  .ico img{width:100%;height:100%;object-fit:cover}
+  .card h2{margin:0;font-size:18px}
+  .card p{margin:0;color:var(--mute);font-size:14px;line-height:1.5;flex:1}
+  .meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--mute)}
+  .open{color:var(--accent);font-weight:700}
+  .empty{grid-column:1/-1;text-align:center;color:var(--mute);padding:40px}
+  footer{text-align:center;color:var(--mute);font-size:12px;padding:0 16px 32px}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">My Tools</h1>
+  <p id="sub">A collection of my web apps and utilities</p>
+</header>
+<div class="bar">
+  <input id="q" type="search" placeholder="Search tools..." aria-label="Search tools"/>
+  <div class="tags" id="tags"></div>
+</div>
+<main id="grid"></main>
+<footer id="foot"></footer>
+
+<script>
+/* =====================================================================
+   EDIT HERE.  One block per tool - copy a block, change the text, save.
+   url   : link to the tool. If the tool is a repo under the same GitHub
+           account, a relative link like "gst-advisor/" is enough
+           (works when this page is the account's main site).
+   icon  : an emoji, OR a path to an image such as "gst-advisor/icon-192.png"
+   tag   : any category word; the filter buttons are created automatically
+   ===================================================================== */
+const SITE = {
+  title: "My Tools",
+  subtitle: "A collection of my web apps and utilities",
+  footer: "Hosted free on GitHub Pages"
+};
+
+const TOOLS = [
+  {
+    name: "GST Advisor Pro",
+    description: "GST legal counsel & advisor (India) powered by Gemini, with PDF export and saved chats.",
+    url: "gst-advisor/",
+    icon: "gst-advisor/icon-192.png",
+    tag: "Tax & Legal"
+  },
+  {
+    name: "Your Next Tool",
+    description: "Replace this with a short description of what the tool does.",
+    url: "your-next-repo/",
+    icon: "🧰",
+    tag: "Utilities"
+  }
+];
+/* ===================================================================== */
+
+document.getElementById('title').textContent = SITE.title;
+document.title = SITE.title;
+document.getElementById('sub').textContent = SITE.subtitle;
+document.getElementById('foot').textContent = SITE.footer;
+
+const grid = document.getElementById('grid'), q = document.getElementById('q'), tagsEl = document.getElementById('tags');
+let activeTag = 'All';
+const tags = ['All', ...new Set(TOOLS.map(t => t.tag).filter(Boolean))];
+
+function el(tag, attrs = {}, text) {
+  const e = document.createElement(tag);
+  Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function icon(t) {
+  const box = el('div', { class: 'ico' });
+  if (/[./]/.test(t.icon || '')) {
+    const img = el('img', { src: t.icon, alt: '' });
+    img.onerror = () => { box.textContent = '🧰'; img.remove(); };
+    box.appendChild(img);
+  } else box.textContent = t.icon || '🧰';
+  return box;
+}
+function render() {
+  const s = q.value.trim().toLowerCase();
+  grid.replaceChildren();
+  const list = TOOLS.filter(t =>
+    (activeTag === 'All' || t.tag === activeTag) &&
+    (!s || (t.name + ' ' + t.description + ' ' + (t.tag || '')).toLowerCase().includes(s)));
+  list.forEach(t => {
+    const a = el('a', { class: 'card', href: t.url });
+    a.append(icon(t), el('h2', {}, t.name), el('p', {}, t.description));
+    const m = el('div', { class: 'meta' });
+    m.append(el('span', {}, t.tag || ''), el('span', { class: 'open' }, 'Open →'));
+    a.appendChild(m);
+    grid.appendChild(a);
+  });
+  if (!list.length) grid.appendChild(el('div', { class: 'empty' }, 'No tools match your search.'));
+}
+function renderTags() {
+  tagsEl.replaceChildren();
+  if (tags.length < 3) return;
+  tags.forEach(t => {
+    const b = el('button', { class: 'tag' + (t === activeTag ? ' on' : ''), type: 'button' }, t);
+    b.onclick = () => { activeTag = t; renderTags(); render(); };
+    tagsEl.appendChild(b);
+  });
+}
+q.addEventListener('input', render);
+renderTags(); render();
+</script>
+</body>
+</html>
